@@ -124,6 +124,7 @@ function logger(options) {
     options.responseFilter = options.responseFilter || defaultResponseFilter;
     options.level = options.level || "info";
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
+    options.responseTime = options.responseTime || 0;
 
     return function (req, res, next) {
 
@@ -143,6 +144,14 @@ function logger(options) {
             res.end = end;
             res.end(chunk, encoding);
 
+            if (res.responseTime < options.responseTime) {
+                return;
+            }
+
+            var meta = {
+                responseTime: res.responseTime
+            }
+
             if(options.meta !== false) {
               var meta = {};
 
@@ -157,7 +166,7 @@ function logger(options) {
               bodyWhitelist = req._routeWhitelists.body || [];
 
               if (bodyWhitelist) {
-                  meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                  meta.req.body = req.body;// filterObject(req.body, bodyWhitelist, options.requestFilter);
               };
 
               meta.responseTime = res.responseTime;
